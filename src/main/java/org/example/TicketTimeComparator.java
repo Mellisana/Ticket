@@ -1,4 +1,4 @@
-import org.example.Ticket;
+package org.example;
 
 import java.util.Comparator;
 
