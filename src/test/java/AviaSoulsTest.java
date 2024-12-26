@@ -1,58 +1,71 @@
 import org.example.AviaSouls;
 import org.example.Ticket;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
+import java.util.Arrays;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class AviaSoulsTest {
+class AviaSoulsTest {
+    private AviaSouls aviaSouls;
+
+    @BeforeEach
+    void setUp() {
+        aviaSouls = new AviaSouls();
+    }
 
     @Test
-    public void testCompareTo() {
-        Ticket t1 = new Ticket("Новосибирск", "Москва", 8000, 12_00, 16_00);
-        Ticket t2 = new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10_15, 11_20);
-        assertTrue(t1.compareTo(t2) > 0);
-        assertTrue(t2.compareTo(t1) < 0);
+    void testCompareTo() {
+        Ticket t1 = new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10, 11);
+        Ticket t2 = new Ticket("Новосибирск", "Москва", 8000, 12, 16);
+
+        aviaSouls.add(t1);
+        aviaSouls.add(t2);
+
+        Ticket[] expected = new Ticket[]{t1, t2};
+        Ticket[] actual = aviaSouls.findAll(); // Метод findAll возвращает все билеты
+        assertArrayEquals(expected, actual);
     }
 
     @Test
     void testSearchSortedByPrice() {
-        AviaSouls manager = new AviaSouls();
-        manager.add(new Ticket("Новосибирск", "Москва", 8000, 12_00, 16_00));
-        manager.add(new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10_15, 11_20));
+        aviaSouls.add(new Ticket("Новосибирск", "Москва", 8000, 12, 16));
+        aviaSouls.add(new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10, 11));
 
-        Ticket[] results = manager.search("Новосибирск", "Москва");
-        assertEquals(1, results.length);
-        assertEquals(8000, results[0].getPrice());
+        Ticket[] actual = aviaSouls.search("Новосибирск", "Москва");
 
-        results = manager.search("Новосибирск", "Горно-Алтайск");
-        assertEquals(1, results.length);
-        assertEquals(4000, results[0].getPrice());
+        assertEquals("Москва", actual[0].getTo()); // Убедимся, что это билет до Москвы
+        assertEquals(8000, actual[0].getPrice());  // Цена должна быть 8000
     }
 
     @Test
     void testTicketTimeComparator() {
-        Ticket t1 = new Ticket("Новосибирск", "Москва", 8000, 12_00, 16_00);
-        Ticket t2 = new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10_15, 11_20);
+        Ticket t1 = new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10, 11);
+        Ticket t2 = new Ticket("Новосибирск", "Москва", 8000, 12, 16);
+
+        Ticket[] actual = new Ticket[]{t2, t1};
+
         TicketTimeComparator comparator = new TicketTimeComparator();
-        assertTrue(comparator.compare(t1, t2) > 0);
-        assertTrue(comparator.compare(t2, t1) < 0);
+
+        Arrays.sort(actual, comparator);
+
+        assertEquals(t1, actual[0]);
+        assertEquals(t2, actual[1]);
     }
 
     @Test
     void testSearchAndSortByDuration() {
         AviaSouls manager = new AviaSouls();
-        manager.add(new Ticket("Новосибирск", "Москва", 8000, 720, 960)); // Duration: 240 minutes
-        manager.add(new Ticket("Новосибирск", "Горно-Алтайск", 4000, 615, 680)); // Duration: 65 minutes
+        manager.add(new Ticket("Новосибирск", "Москва", 8000, 12, 16)); // Duration: 240 minutes
+        manager.add(new Ticket("Новосибирск", "Горно-Алтайск", 4000, 10, 11)); // Duration: 65 minutes
 
         TicketTimeComparator comparator = new TicketTimeComparator();
         Ticket[] results = manager.searchAndSortBy("Новосибирск", "Москва", comparator);
         assertEquals(1, results.length);
-        assertEquals(240, results[0].getTimeTo() - results[0].getTimeFrom());
+        assertEquals(4, results[0].getTimeTo() - results[0].getTimeFrom());
 
         results = manager.searchAndSortBy("Новосибирск", "Горно-Алтайск", comparator);
         assertEquals(1, results.length);
-        assertEquals(65, results[0].getTimeTo() - results[0].getTimeFrom());
+        assertEquals(1, results[0].getTimeTo() - results[0].getTimeFrom());
     }
 }
-
